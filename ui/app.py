@@ -2,6 +2,9 @@ import streamlit as st
 import sys
 import os
 import re
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Add project root to sys.path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -80,10 +83,7 @@ st.markdown(
         box-shadow: 0 2px 8px 0 rgba(70,130,180,0.08);
         transition: background 0.2s;
     }
-    # .stButton > button:hover {
-    #     background-color: #483d8b;
-    #     color: white;
-    # }
+
     .stSpinner > div > div {
         color: #483d8b !important;
     }
@@ -114,7 +114,19 @@ if generate and url:
 
 # --- Blog Display ---
 if 'blog_content' in st.session_state and st.session_state['blog_content']:
-    st.markdown('<div class="blog-content">' + st.session_state['blog_content'] + '</div>', unsafe_allow_html=True)
+    blog_content = st.session_state['blog_content']
+    # Download button HTML (top right)
+    download_button_html = f'''
+    <div style="position: relative; max-width: 900px; margin-left: auto;  margin-right: auto;" >
+        <div style="position: absolute; top: -2.5em; right: 0; margin-botton:10px; z-index: 10;">
+            <form method="post">
+                <button id="download-md" style="background:#6A5ACD;color:white;border:none;border-radius:0.5em;padding:0.5em 1.2em;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px 0 rgba(70,130,180,0.08);font-size:1em;" onclick="window.open('data:text/markdown;charset=utf-8,' + encodeURIComponent(document.getElementById('blog-md-content').innerText))">Download as Markdown</button>
+            </form>
+        </div>
+        <div id="blog-md-content" class="blog-content">{blog_content}</div>
+    </div>
+    '''
+    st.markdown(download_button_html, unsafe_allow_html=True)
 
     # --- Feedback Loop ---
     feedback = st.text_input("Suggest a change to the blog (e.g., 'make it more humorous', 'add a summary', etc.)", key="feedback_input")
@@ -133,4 +145,4 @@ if 'blog_content' in st.session_state and st.session_state['blog_content']:
             st.rerun()
 
 st.markdown("<hr style='margin:2em 0;'>", unsafe_allow_html=True)
-st.markdown("<div style='text-align:center; color:#6A5ACD;'>Built with ❤️ using Streamlit and Gemini</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align:center; color:#6A5ACD;'>Built by Sahil ❤️ using Streamlit, langgraph and Gemini</div>", unsafe_allow_html=True)
