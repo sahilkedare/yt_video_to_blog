@@ -53,11 +53,3 @@ def seo_optimize_blog(state):
     except Exception as e:
         logging.error(f"[SEO] Error optimizing blog: {e}")
         return {"optimized_blog": None, "error": str(e)}
-
-# if __name__ == "__main__":
-#     """Run the SEO optimizer pipeline from transcript to optimized blog."""
-#     transcript = get_transcript("https://www.youtube.com/watch?v=ar62HDh5yn4")
-#     summary = summarize_transcript(transcript)
-#     blog = generate_blog_from_summary(summary)
-#     optimized_content = seo_optimize_blog(blog)
-#     print(optimized_content)  # Print the raw output for debugging

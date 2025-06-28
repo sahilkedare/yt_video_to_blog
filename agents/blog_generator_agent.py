@@ -22,13 +22,14 @@ model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 def generate_blog_from_summary(state):
     logging.info("[BlogGen] Blog generation started.")
     summary = state.get("summary")
+    tone = state.get("tone","Formal")
     if not summary or not isinstance(summary, str):
         logging.error("[BlogGen] Invalid or missing summary.")
         return {"blog": None, "error": "Invalid or missing summary."}
     prompt = f"""
     Write a detailed and engaging blog post based on the following summary. 
     The blog should include an introduction, key points in well-structured sections, and a conclusion. 
-    Use a friendly and informative tone. Add examples if appropriate.
+    Use a {tone.lower()} tone. Add examples if appropriate.
 
     Summary:
     {summary}

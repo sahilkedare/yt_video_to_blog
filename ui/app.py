@@ -95,12 +95,19 @@ st.markdown(
 st.markdown('<div class="main-title">YouTube to Beautiful Blog Generator</div>', unsafe_allow_html=True)
 st.markdown('<div style="text-align:center;"><div class="subtitle">Paste a YouTube video URL below and get a fully generated, SEO-optimized blog post!</div></div>', unsafe_allow_html=True)
 # --- URL Input and Blog Generation ---
+tone = st.selectbox(
+    "Select Blog Tone:",
+    ["Formal", "Casual", "Humorous","Persuasive","Critical","Technical "],
+    index=0,
+    help="Choose the tone/style for your generated blog."
+)
 url = st.text_input("YouTube Video URL", placeholder="https://www.youtube.com/watch?v=...")
 generate = st.button("Generate Blog")
 
 if generate and url:
     with st.spinner("Generating blog post. This may take a moment..."):
-        result = graph.invoke({"video_url": url, "feedback": ""})
+        result = graph.invoke({"video_url": url, "feedback": "", "tone": tone})
+        # print(result)
         blog = result.get("optimized_blog") or result.get("blog")
         if isinstance(blog, dict) and "raw_output" in blog:
             blog = blog["raw_output"]
