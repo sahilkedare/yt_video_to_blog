@@ -2,6 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 import google.generativeai as genai
+import logging
 
 # Add project root to sys.path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -20,12 +21,21 @@ model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
 def summarize_transcript(state):
     """Summarizes the transcript using Google Gemini."""
-    transcript = state["transcript"]
+    logging.info("[Summarizer] Summarization started.")
+    transcript = state.get("transcript")
+    if not transcript or not isinstance(transcript, list):
+        logging.error("[Summarizer] Invalid or missing transcript.")
+        return {"summary": None, "error": "Invalid or missing transcript."}
     full_text = " ".join([entry['text'] for entry in transcript])
     truncated_text = full_text[:10000]  # Truncate to 10,000 characters
     prompt = f"Summarize the following YouTube video transcript in concise bullet points:\n\n{truncated_text}"
-    response = model.generate_content(prompt)
-    return {"summary": response.text}
+    try:
+        response = model.generate_content(prompt)
+        logging.info("[Summarizer] Summarization done.")
+        return {"summary": response.text}
+    except Exception as e:
+        logging.error(f"[Summarizer] Error summarizing transcript: {e}")
+        return {"summary": None, "error": str(e)}
 
 
 

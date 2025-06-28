@@ -1,5 +1,6 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 from urllib.parse import urlparse, parse_qs
+import logging
 
 def get_video_id(url):
     parsed_url= urlparse(url)
@@ -10,18 +11,22 @@ def get_video_id(url):
     return None
 
 def get_transcript(state):
-    video_url = state["video_url"]
+    logging.info("[Transcript] Fetching transcript started.")
+    video_url = state.get("video_url")
+    if not video_url or not isinstance(video_url, str):
+        logging.error("[Transcript] Invalid or missing video_url.")
+        return {"transcript": None, "error": "Invalid or missing video_url."}
     video_id = get_video_id(video_url)
     if not video_id:
-        raise ValueError("Invalid YouTube URL")
-        return
-
-    try: 
+        logging.error("[Transcript] Invalid YouTube URL.")
+        return {"transcript": None, "error": "Invalid YouTube URL."}
+    try:
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
         for entry in transcript:
             entry['text'] = entry['text'].replace('\n', ' ')
+        logging.info("[Transcript] Fetching transcript done.")
         return {"transcript": transcript}
     except Exception as e:
-        print(f"Error fetching transcript: {e}")
-        return {"transcript": None}
+        logging.error(f"[Transcript] Error fetching transcript: {e}")
+        return {"transcript": None, "error": str(e)}
 

@@ -2,6 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 import google.generativeai as genai
+import logging
 
 # Add project root to sys.path for imports
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -20,7 +21,11 @@ genai.configure(api_key=api_key)
 model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
 def seo_optimize_blog(state):
-    blog_text = state["blog"]
+    logging.info("[SEO] SEO optimization started.")
+    blog_text = state.get("blog")
+    if not blog_text or not isinstance(blog_text, str):
+        logging.error("[SEO] Invalid or missing blog content.")
+        return {"optimized_blog": None, "error": "Invalid or missing blog content."}
     prompt = f"""
     You are an SEO expert. Optimize the following blog post for search engines.
     
@@ -40,14 +45,19 @@ def seo_optimize_blog(state):
     - Keyword Tags
     - Optimized Blog Content
     """
-    response = model.generate_content(prompt)
-    output = response.text
-    return {"optimized_blog": output}
+    try:
+        response = model.generate_content(prompt)
+        output = response.text
+        logging.info("[SEO] SEO optimization done.")
+        return {"optimized_blog": output}
+    except Exception as e:
+        logging.error(f"[SEO] Error optimizing blog: {e}")
+        return {"optimized_blog": None, "error": str(e)}
 
-if __name__ == "__main__":
-    """Run the SEO optimizer pipeline from transcript to optimized blog."""
-    transcript = get_transcript("https://www.youtube.com/watch?v=ar62HDh5yn4")
-    summary = summarize_transcript(transcript)
-    blog = generate_blog_from_summary(summary)
-    optimized_content = seo_optimize_blog(blog)
-    print(optimized_content)  # Print the raw output for debugging
+# if __name__ == "__main__":
+#     """Run the SEO optimizer pipeline from transcript to optimized blog."""
+#     transcript = get_transcript("https://www.youtube.com/watch?v=ar62HDh5yn4")
+#     summary = summarize_transcript(transcript)
+#     blog = generate_blog_from_summary(summary)
+#     optimized_content = seo_optimize_blog(blog)
+#     print(optimized_content)  # Print the raw output for debugging

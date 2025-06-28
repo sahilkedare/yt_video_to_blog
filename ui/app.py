@@ -18,9 +18,82 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.markdown('<div class="main-title">YouTube to Beautiful Blog Generator</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Paste a YouTube video URL below and get a fully generated, SEO-optimized blog post!</div>', unsafe_allow_html=True)
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Fira+Mono&display=swap');
+    body, .stApp {
+        background-color: #f8fafd !important;
+    }
+    .main-title {
+        font-size: 2.8rem;
+        font-weight: bold;
+        color: #483d8b;
+        margin-bottom: 0.5em;
+        letter-spacing: 1px;
+        text-align: center;
+        font-family: 'Poppins', sans-serif;
+        text-shadow: 1px 2px 8px #e6eaff;
+    }
+    .subtitle {
+        font-size: 1.05rem;
+        color: #6A5ACD;
+        margin-bottom: 2em;
+        text-align: center;
+        font-family: 'Poppins', sans-serif;
+        background: #e6eaff;
+        border-radius: 0.7em;
+        padding: 0.7em 1.5em;
+        display: inline-block;
+        box-shadow: 0 2px 12px 0 rgba(70,130,180,0.08);
+    }
+    .blog-content {
+        background: #f0f2f6;
+        border-radius: 1rem;
+        padding: 2em 3em;
+        box-shadow: 0 4px 24px 0 rgba(70,130,180,0.08);
+        font-size: 1.1rem;
+        color: #333;
+        margin-top: 2em;
+        margin-bottom: 2em;
+        line-height: 1.7;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .stTextInput > div > input {
+        border-radius: 0.5rem;
+        border: 2px solid #483d8b;
+        background: #e6eaff;
+        color: #483d8b;
+        font-size: 1.1rem;
+        padding: 0.5em 1em;
+    }
+    .stButton > button {
+        background-color: #6A5ACD;
+        color: white;
+        border-radius: 0.5rem;
+        font-weight: bold;
+        font-size: 1.1rem;
+        padding: 0.5em 2em;
+        margin-top: 1em;
+        box-shadow: 0 2px 8px 0 rgba(70,130,180,0.08);
+        transition: background 0.2s;
+    }
+    # .stButton > button:hover {
+    #     background-color: #483d8b;
+    #     color: white;
+    # }
+    .stSpinner > div > div {
+        color: #483d8b !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
+st.markdown('<div class="main-title">YouTube to Beautiful Blog Generator</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center;"><div class="subtitle">Paste a YouTube video URL below and get a fully generated, SEO-optimized blog post!</div></div>', unsafe_allow_html=True)
 # --- URL Input and Blog Generation ---
 url = st.text_input("YouTube Video URL", placeholder="https://www.youtube.com/watch?v=...")
 generate = st.button("Generate Blog")
