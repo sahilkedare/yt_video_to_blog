@@ -108,29 +108,58 @@ if generate and url:
     with st.spinner("Generating blog post. This may take a moment..."):
         result = graph.invoke({"video_url": url, "feedback": "", "tone": tone})
         # print(result)
-        blog = result.get("optimized_blog") or result.get("blog")
+        blog = result.get("blog_with_image") or result.get("optimized_blog") or result.get("blog")
         if isinstance(blog, dict) and "raw_output" in blog:
             blog = blog["raw_output"]
-        # Extract only the main blog content after 'Optimized Blog Content:'
         blog_content = blog
-        match = re.search(r"Optimized Blog Content:\s*([\s\S]*)", blog)
-        if match:
-            blog_content = match.group(1).strip()
+        # match = re.search(r"Optimized Blog Content:\s*([\s\S]*)", blog)
+        # if match:
+        #     blog_content = match.group(1).strip()
         st.session_state['blog_content'] = blog_content
         st.session_state['feedback'] = ""
 
 # --- Blog Display ---
 if 'blog_content' in st.session_state and st.session_state['blog_content']:
     blog_content = st.session_state['blog_content']
-    # Download button HTML (top right)
+    # Extract SEO metadata and main blog content
+    seo_title = seo_description = seo_keywords = None
+    main_content = blog_content
+    # Try to extract SEO metadata and main content from the blog_content
+    title_match = re.search(r"\*\*Optimized Title:\*\*\s*(.*)", blog_content)
+    desc_match = re.search(r"Meta Description:\s*(.*)", blog_content)
+    tags_match = re.search(r"Keyword Tags:\s*(.*)", blog_content)
+    content_match = re.search(r"Optimized Blog Content:\s*([\s\S]*)", blog_content)
+    if title_match:
+        seo_title = title_match.group(1).strip()
+    if desc_match:
+        seo_description = desc_match.group(1).strip()
+    if tags_match:
+        seo_keywords = tags_match.group(1).strip()
+    if content_match:
+        main_content = content_match.group(1).strip()
+    # SEO Section HTML (to be appended after blog)
+    seo_html = ""
+    if any([seo_title, seo_description, seo_keywords]):
+        seo_html = """
+        <div style='background:#e6eaff; border-radius:0.7em; padding:1em 2em; margin-top:2em; max-width:900px; margin-left:auto; margin-right:auto;'>
+        <b>SEO Metadata</b><br>
+        {}{}{}
+        </div>
+        """.format(
+            f"<b>Title:</b> {seo_title}<br>" if seo_title else "",
+            f"<b>Meta Description:</b> {seo_description}<br>" if seo_description else "",
+            f"<b>Keyword Tags:</b> {seo_keywords}" if seo_keywords else ""
+        )
+    # Download button HTML (top right, old UI style)
     download_button_html = f'''
     <div style="position: relative; max-width: 900px; margin-left: auto;  margin-right: auto;" >
-        <div style="position: absolute; top: -2.5em; right: 0; margin-botton:10px; z-index: 10;">
+        <div style="position: absolute; top: -2.5em; right: 0; margin-bottom:10px; z-index: 10;">
             <form method="post">
                 <button id="download-md" style="background:#6A5ACD;color:white;border:none;border-radius:0.5em;padding:0.5em 1.2em;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px 0 rgba(70,130,180,0.08);font-size:1em;" onclick="window.open('data:text/markdown;charset=utf-8,' + encodeURIComponent(document.getElementById('blog-md-content').innerText))">Download as Markdown</button>
             </form>
         </div>
-        <div id="blog-md-content" class="blog-content">{blog_content}</div>
+        <div id="blog-md-content" class="blog-content">{main_content}</div>
+        {seo_html}
     </div>
     '''
     st.markdown(download_button_html, unsafe_allow_html=True)
@@ -142,12 +171,7 @@ if 'blog_content' in st.session_state and st.session_state['blog_content']:
         with st.spinner("Updating blog with your feedback..."):
             result = revise_blog_with_feedback({"blog": st.session_state['blog_content'], "feedback": feedback})
             updated_blog = result.get("blog") if isinstance(result, dict) else result
-            # Extract only the main blog content after 'Optimized Blog Content:'
-            blog_content = updated_blog
-            match = re.search(r"Optimized Blog Content:\s*([\s\S]*)", updated_blog)
-            if match:
-                blog_content = match.group(1).strip()
-            st.session_state['blog_content'] = blog_content
+            st.session_state['blog_content'] = updated_blog
             st.session_state['feedback'] = feedback
             st.rerun()
 
