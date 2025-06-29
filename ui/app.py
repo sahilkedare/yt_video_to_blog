@@ -150,7 +150,8 @@ if 'blog_content' in st.session_state and st.session_state['blog_content']:
             f"<b>Meta Description:</b> {seo_description}<br>" if seo_description else "",
             f"<b>Keyword Tags:</b> {seo_keywords}" if seo_keywords else ""
         )
-    # Download button HTML (top right, old UI style)
+    # --- Render blog with image after title if present ---
+    # Always show the download button
     download_button_html = f'''
     <div style="position: relative; max-width: 900px; margin-left: auto;  margin-right: auto;" >
         <div style="position: absolute; top: -2.5em; right: 0; margin-bottom:10px; z-index: 10;">
@@ -158,11 +159,29 @@ if 'blog_content' in st.session_state and st.session_state['blog_content']:
                 <button id="download-md" style="background:#6A5ACD;color:white;border:none;border-radius:0.5em;padding:0.5em 1.2em;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px 0 rgba(70,130,180,0.08);font-size:1em;" onclick="window.open('data:text/markdown;charset=utf-8,' + encodeURIComponent(document.getElementById('blog-md-content').innerText))">Download as Markdown</button>
             </form>
         </div>
-        <div id="blog-md-content" class="blog-content">{main_content}</div>
-        {seo_html}
     </div>
     '''
     st.markdown(download_button_html, unsafe_allow_html=True)
+    # Extract image (if any) and title (if any)
+    image_match = re.search(r'!\[.*?\]\((.*?)\)', main_content)
+    title_match_md = re.match(r'# (.+)', main_content)
+    image_url = image_match.group(1) if image_match else None
+    # Remove image tag from content
+    content_wo_image = re.sub(r'!\[.*?\]\(.*?\)\s*', '', main_content, count=1) if image_match else main_content
+    # Remove title from content
+    title = title_match_md.group(0) if title_match_md else None
+    content_wo_title = re.sub(r'^# .+\n*', '', content_wo_image, count=1) if title else content_wo_image
+    # Render blog content
+    blog_html = '<div id="blog-md-content" class="blog-content">'
+    if title:
+        blog_html += f'{title}\n\n'
+    if image_url:
+        blog_html += f'<img src="{image_url}" style="max-width:100%;height:auto;display:block;margin:2em auto;" />\n\n'
+    blog_html += content_wo_title.strip()
+    blog_html += '</div>'
+    st.markdown(blog_html, unsafe_allow_html=True)
+    if seo_html:
+        st.markdown(seo_html, unsafe_allow_html=True)
 
     # --- Feedback Loop ---
     feedback = st.text_input("Suggest a change to the blog (e.g., 'make it more humorous', 'add a summary', etc.)", key="feedback_input")

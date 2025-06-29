@@ -3,3 +3,6 @@ streamlit
 youtube-transcript-api
 google-generativeai 
 python-dotenv
+yt_dlp
+Pillow
+requests
