@@ -3,6 +3,10 @@ import sys
 import os
 import re
 import logging
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
 
 logging.basicConfig(level=logging.INFO)
 
@@ -196,3 +200,56 @@ if 'blog_content' in st.session_state and st.session_state['blog_content']:
 
 st.markdown("<hr style='margin:2em 0;'>", unsafe_allow_html=True)
 st.markdown("<div style='text-align:center; color:#6A5ACD;'>Built by Sahil ❤️ using Streamlit, langgraph and Gemini</div>", unsafe_allow_html=True)
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/api/generate_blog")
+async def generate_blog(request: Request):
+    data = await request.json()
+    url = data.get("video_url")
+    tone = data.get("tone", "Formal")
+    result = graph.invoke({"video_url": url, "feedback": "", "tone": tone})
+    blog = result.get("blog_with_image") or result.get("optimized_blog") or result.get("blog")
+    if isinstance(blog, dict) and "raw_output" in blog:
+        blog = blog["raw_output"]
+    blog_content = blog
+    seo_title = seo_description = seo_keywords = image_url = None
+    title_match = re.search(r"\*\*Optimized Title:\*\*\s*(.*)", blog_content)
+    desc_match = re.search(r"Meta Description:\s*(.*)", blog_content)
+    tags_match = re.search(r"Keyword Tags:\s*(.*)", blog_content)
+    content_match = re.search(r"Optimized Blog Content:\s*([\s\S]*)", blog_content)
+    image_match = re.search(r'!\[.*?\]\((.*?)\)', blog_content)
+    if title_match:
+        seo_title = title_match.group(1).strip()
+    if desc_match:
+        seo_description = desc_match.group(1).strip()
+    if tags_match:
+        seo_keywords = tags_match.group(1).strip()
+    if image_match:
+        image_url = image_match.group(1)
+    main_content = content_match.group(1).strip() if content_match else blog_content
+    return JSONResponse({
+        "blog_content": main_content,
+        "seo_title": seo_title,
+        "seo_description": seo_description,
+        "seo_keywords": seo_keywords,
+        "image_url": image_url
+    })
+
+@app.post("/api/revise_blog")
+async def revise_blog(request: Request):
+    data = await request.json()
+    blog = data.get("blog")
+    feedback = data.get("feedback", "")
+    result = revise_blog_with_feedback({"blog": blog, "feedback": feedback})
+    updated_blog = result.get("blog") if isinstance(result, dict) else result
+    return JSONResponse({"blog": updated_blog})
+
+# To run: uvicorn ui.app:app --reload

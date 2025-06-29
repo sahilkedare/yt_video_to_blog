@@ -6,3 +6,5 @@ python-dotenv
 yt_dlp
 Pillow
 requests
+fastapi
+uvicorn
